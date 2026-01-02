@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8" />
+    <title>Ranking filmów</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            max-width:800px;
+        }
+        table{
+            border-collapse:collapse;
+            width:100%;
+            margin-bottom:30px;
+        }
+        th,td{
+            border:1px solid #ccc;
+            padding: 8px;
+        }
+        th{
+            background: #f0f0f0;
+        }
+        form{
+            border:1px solid #ddd;
+        }
+        label{
+            display:block;
+            margin-top:10px;
+        }
+        button{
+            margin-top:15px;
+            padding:6px 12px;
+        }
+        #message{
+            margin-top:10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ranking filmów</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Tytuł</th>
+                <th>Rok</th>
+                <th>Średnia</th>
+                <th>Liczba głosów</th>
+            </tr>
+        </thead>
+        <tbody id="moviesTable"></tbody>
+    </table>
+    <h2>Dodaj ocenę</h2>
+    <form id="ratingForm">
+        <label>
+            Film:
+            <select id="movieSelect" required>
+                <option value="">--wybierz film--</option>
+            </select>
+        </label>
+        <label>
+            Ocena:
+            <select id="scoreSelect" required>
+                <option value="">--wybierz--</option>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+            </select>
+        </label>
+        <button type="submit">Dodaj ocenę</button>
+    </form>
+    <p id="message"></p>
+    <script>
+        async function loadMovies() {
+            const res = await fetch('/api/movies');
+            const movies = await res.json();
+            const table = document.getElementById("moviesTable");
+            const select = document.getElementById("movieSelect");
+            table.innerHTML = "";
+            select.innerHTML = "<option value=''>--wybierz film--</option>";
+            movies.forEach(m => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                <td>${m.title}</td>
+                <td>${m.year}</td>
+                <td>${m.avgScore}</td>
+                <td>${m.votes}</td>`;
+                table.appendChild(row);
+                const opt = document.createElement("option");
+                opt.value = m.id;
+                opt.textContent = `${m.title} (${m.year})`;
+                select.appendChild(opt);
+            });
+        }
+        async function submitRating(movieId, score) {
+            return fetch('/api/ratings', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    movieId: Number(movieId),
+                    score: Number(score)
+                })
+            });
+        }
+        document.getElementById("ratingForm").addEventListener("submit", async e => {
+            e.preventDefault();
+            const movieId = document.getElementById("movieSelect").value;
+            const score = document.getElementById("scoreSelect").value;
+            const msg = document.getElementById("message");
+            msg.textContent = "";
+            if (!movieId || !score) {
+                msg.textContent = "Wybierz film i ocenę";
+                return;
+            }
+            const res = await submitRating(movieId, score);
+            if (res.ok) {
+                msg.textContent = "Ocena dodana";
+                e.target.reset();
+                loadMovies();
+            } else {
+                const text = await res.text();
+                msg.textContent = `Błąd (${res.status}):${text}`;
+            }
+        });
+        loadMovies();
+    </script>
+</body>
+</html>

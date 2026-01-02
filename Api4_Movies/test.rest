@@ -1,0 +1,47 @@
+﻿@baseUrl=https://localhost:7036
+
+### GET all movies
+GET {{baseUrl}}/api/movies
+Accept:application/json
+### POST new movie
+POST {{baseUrl}}/api/movies
+Content-Type:application/json
+{
+  "title":"Lord of the Rings: The Two Towers",
+  "year":2002
+}
+### POST wrong movie (name)
+POST {{baseUrl}}/api/movies
+Content-Type:application/json
+{
+  "title":"",
+  "year":2002
+}
+### POST wrong movie (year)
+POST {{baseUrl}}/api/movies
+Content-Type:application/json
+{
+  "title":"Lord of the Rings: The Two Towers",
+  "year":0
+}
+### POST rating (correct)
+POST {{baseUrl}}/api/ratings
+Content-Type:application/json
+{
+  "movieId":5,
+  "score":5
+}
+### POST rating (out of range)
+POST {{baseUrl}}/api/ratings
+Content-Type:application/json
+{
+  "movieId":5,
+  "score":10
+}
+### POST rating (wrong movieId)
+POST {{baseUrl}}/api/ratings
+Content-Type:application/json
+{
+  "movieId":8,
+  "score":5
+}
